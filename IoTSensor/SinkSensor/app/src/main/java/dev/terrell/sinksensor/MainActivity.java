@@ -7,11 +7,11 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.nxp.nfclib.NxpNfcLib;
-import com.nxp.nfclib.CardType;
 
 public class MainActivity extends AppCompatActivity {
     private NxpNfcLib nfc;
-    private String LogTag = "SinkSensor";
+    private static final String LogTag = "SinkSensor";
+
     private void initNFC()
     {
         nfc = NxpNfcLib.getInstance();
@@ -26,7 +26,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         initNFC();
     }
 
@@ -48,13 +47,13 @@ public class MainActivity extends AppCompatActivity {
     public void onNewIntent(final Intent intent)
     {
         Log.d(LogTag, "Intent Received");
-        detectNFC(intent);
+        String guestIdentity = Guest.getIdentity(nfc, intent);
+        if (guestIdentity != "unknown") {
+            Log.d(LogTag, "Guest Identified: " + guestIdentity);
+        }
+        else {
+            Log.w(LogTag, "Unable to Read Tag");
+        }
         super.onNewIntent(intent);
-    }
-
-    private void detectNFC(final Intent intent)
-    {
-        CardType cardType = nfc.getCardType(intent);
-        Log.d(LogTag, "Card Type Detected: " + cardType.getTagName());
     }
 }
