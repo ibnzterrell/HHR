@@ -1,0 +1,2 @@
+rootProject.name='SinkSensor'
+include ':app'
