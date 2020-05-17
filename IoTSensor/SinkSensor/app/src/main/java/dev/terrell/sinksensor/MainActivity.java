@@ -7,14 +7,15 @@ import android.os.Bundle;
 import android.util.Log;
 
 public class MainActivity extends AppCompatActivity {
-    private static final String LogTag = "SinkSensor";
+    private static final String TAG = "SinkSensor";
     private NFC nfc;
-
+    private BLE ble;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         nfc = NFC.getInstance(this);
+        ble = BLE.getInstance(this.getApplicationContext());
     }
 
     @Override
@@ -31,12 +32,12 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onNewIntent(final Intent intent) {
-        Log.d(LogTag, "Intent Received");
+        Log.d(TAG, "Intent Received");
         String guestIdentity = nfc.getIdentity(intent);
         if (guestIdentity != "unknown") {
-            Log.d(LogTag, "Guest Identified: " + guestIdentity);
+            Log.d(TAG, "Guest Identified: " + guestIdentity);
         } else {
-            Log.w(LogTag, "Unable to Read Tag");
+            Log.w(TAG, "Unable to Read Tag");
         }
         super.onNewIntent(intent);
     }

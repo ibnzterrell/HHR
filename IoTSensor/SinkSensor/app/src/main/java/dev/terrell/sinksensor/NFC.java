@@ -13,7 +13,7 @@ import com.nxp.nfclib.desfire.IDESFireEV1;
 import java.util.Base64;
 
 public class NFC {
-    private static final String LogTag = "SinkSensor";
+    private static final String TAG = "SinkSensor";
     private static NFC instance;
     private NxpNfcLib lib;
 
@@ -22,7 +22,7 @@ public class NFC {
         try {
             lib.registerActivity(a, Secrets.MifareKey);
         } catch (Exception e) {
-            Log.e(LogTag, e.toString());
+            Log.e(TAG, e.toString());
         }
     }
 
@@ -49,7 +49,7 @@ public class NFC {
         } catch (Exception e) {
 
         }
-        Log.d(LogTag, "Tag Type: " + tagName);
+        Log.d(TAG, "Tag Type: " + tagName);
         switch (tagName) {
             case "DESFire EV1":
                 return getDESFireEV1Identity();
@@ -67,9 +67,9 @@ public class NFC {
         try {
             byte[] data = card.getUID();
             identity = Base64.getEncoder().encodeToString(data);
-            Log.d(LogTag, identity);
+            Log.d(TAG, identity);
         } catch (Exception e) {
-            Log.e(LogTag, "DESFire EV1 Read Error: " + e);
+            Log.e(TAG, "DESFire EV1 Read Error: " + e);
         }
         return identity;
     }
@@ -81,9 +81,9 @@ public class NFC {
         try {
             byte[] data = card.getUID();
             identity = Base64.getEncoder().encodeToString(data);
-            Log.d(LogTag, identity);
+            Log.d(TAG, identity);
         } catch (Exception e) {
-            Log.e(LogTag, "Ultralight C Read Error: " + e);
+            Log.e(TAG, "Ultralight C Read Error: " + e);
         }
         return identity;
     }
