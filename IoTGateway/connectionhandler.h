@@ -48,33 +48,36 @@
 **
 ****************************************************************************/
 
-#include <QGuiApplication>
-#include <QLoggingCategory>
-#include <QQmlApplicationEngine>
-#include <QQmlContext>
+#ifndef CONNECTIONHANDLER_H
+#define CONNECTIONHANDLER_H
 
-#include "connectionhandler.h"
-#include "devicefinder.h"
-#include "devicehandler.h"
+#include <QObject>
+#include <QBluetoothLocalDevice>
 
-int main(int argc, char *argv[])
+class ConnectionHandler : public QObject
 {
-    QLoggingCategory::setFilterRules(QStringLiteral("qt.bluetooth* = true"));
-    QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-    QGuiApplication app(argc, argv);
+    Q_PROPERTY(bool alive READ alive NOTIFY deviceChanged)
+    Q_PROPERTY(QString name READ name NOTIFY deviceChanged)
+    Q_PROPERTY(QString address READ address NOTIFY deviceChanged)
+    Q_PROPERTY(bool requiresAddressType READ requiresAddressType CONSTANT)
 
-    ConnectionHandler connectionHandler;
-    DeviceHandler deviceHandler;
-    DeviceFinder deviceFinder(&deviceHandler);
+    Q_OBJECT
+public:
+    explicit ConnectionHandler(QObject *parent = nullptr);
 
-    qmlRegisterUncreatableType<DeviceHandler>("Shared", 1, 0, "AddressType", "Enum is not a type");
+    bool alive() const;
+    bool requiresAddressType() const;
+    QString name() const;
+    QString address() const;
 
-    QQmlApplicationEngine engine;
-    engine.rootContext()->setContextProperty("connectionHandler", &connectionHandler);
-    engine.rootContext()->setContextProperty("deviceFinder", &deviceFinder);
-    engine.rootContext()->setContextProperty("deviceHandler", &deviceHandler);
+signals:
+    void deviceChanged();
 
-    engine.load(QUrl(QStringLiteral("qrc:/qml/main.qml")));
+private slots:
+    void hostModeChanged(QBluetoothLocalDevice::HostMode mode);
 
-    return app.exec();
-}
+private:
+    QBluetoothLocalDevice m_localDevice;
+};
+
+#endif // CONNECTIONHANDLER_H

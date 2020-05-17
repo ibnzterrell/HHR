@@ -48,33 +48,52 @@
 **
 ****************************************************************************/
 
-#include <QGuiApplication>
-#include <QLoggingCategory>
-#include <QQmlApplicationEngine>
-#include <QQmlContext>
+import QtQuick 2.5
 
-#include "connectionhandler.h"
-#include "devicefinder.h"
-#include "devicehandler.h"
+GamePage {
 
-int main(int argc, char *argv[])
-{
-    QLoggingCategory::setFilterRules(QStringLiteral("qt.bluetooth* = true"));
-    QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-    QGuiApplication app(argc, argv);
+    Column {
+        anchors.centerIn: parent
+        width: parent.width
 
-    ConnectionHandler connectionHandler;
-    DeviceHandler deviceHandler;
-    DeviceFinder deviceFinder(&deviceHandler);
+        Text {
+            anchors.horizontalCenter: parent.horizontalCenter
+            font.pixelSize: GameSettings.hugeFontSize
+            color: GameSettings.textColor
+            text: qsTr("RESULT")
+        }
 
-    qmlRegisterUncreatableType<DeviceHandler>("Shared", 1, 0, "AddressType", "Enum is not a type");
+        Text {
+            anchors.horizontalCenter: parent.horizontalCenter
+            font.pixelSize: GameSettings.giganticFontSize*3
+            color: GameSettings.textColor
+            text: (deviceHandler.maxHR - deviceHandler.minHR).toFixed(0)
+        }
 
-    QQmlApplicationEngine engine;
-    engine.rootContext()->setContextProperty("connectionHandler", &connectionHandler);
-    engine.rootContext()->setContextProperty("deviceFinder", &deviceFinder);
-    engine.rootContext()->setContextProperty("deviceHandler", &deviceHandler);
+        Item {
+            height: GameSettings.fieldHeight
+            width: 1
+        }
 
-    engine.load(QUrl(QStringLiteral("qrc:/qml/main.qml")));
+        StatsLabel {
+            title: qsTr("MIN")
+            value: deviceHandler.minHR.toFixed(0)
+        }
 
-    return app.exec();
+        StatsLabel {
+            title: qsTr("MAX")
+            value: deviceHandler.maxHR.toFixed(0)
+        }
+
+        StatsLabel {
+            title: qsTr("AVG")
+            value: deviceHandler.average.toFixed(1)
+        }
+
+
+        StatsLabel {
+            title: qsTr("CALORIES")
+            value: deviceHandler.calories.toFixed(3)
+        }
+    }
 }

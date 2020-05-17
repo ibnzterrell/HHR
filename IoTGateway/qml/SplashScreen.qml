@@ -48,33 +48,43 @@
 **
 ****************************************************************************/
 
-#include <QGuiApplication>
-#include <QLoggingCategory>
-#include <QQmlApplicationEngine>
-#include <QQmlContext>
+import QtQuick 2.5
+import "."
 
-#include "connectionhandler.h"
-#include "devicefinder.h"
-#include "devicehandler.h"
+Item {
+    id: root
+    anchors.fill: parent
 
-int main(int argc, char *argv[])
-{
-    QLoggingCategory::setFilterRules(QStringLiteral("qt.bluetooth* = true"));
-    QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-    QGuiApplication app(argc, argv);
+    property bool appIsReady: false
+    property bool splashIsReady: false
 
-    ConnectionHandler connectionHandler;
-    DeviceHandler deviceHandler;
-    DeviceFinder deviceFinder(&deviceHandler);
+    property bool ready: appIsReady && splashIsReady
+    onReadyChanged: if (ready) readyToGo();
 
-    qmlRegisterUncreatableType<DeviceHandler>("Shared", 1, 0, "AddressType", "Enum is not a type");
+    signal readyToGo()
 
-    QQmlApplicationEngine engine;
-    engine.rootContext()->setContextProperty("connectionHandler", &connectionHandler);
-    engine.rootContext()->setContextProperty("deviceFinder", &deviceFinder);
-    engine.rootContext()->setContextProperty("deviceHandler", &deviceHandler);
+    function appReady()
+    {
+        appIsReady = true
+    }
 
-    engine.load(QUrl(QStringLiteral("qrc:/qml/main.qml")));
+    function errorInLoadingApp()
+    {
+        Qt.quit()
+    }
 
-    return app.exec();
+    Image {
+        anchors.centerIn: parent
+        width: Math.min(parent.height, parent.width)*0.6
+        height: GameSettings.heightForWidth(width, sourceSize)
+        source: "images/logo.png"
+    }
+
+    Timer {
+        id: splashTimer
+        interval: 1000
+        onTriggered: splashIsReady = true
+    }
+
+    Component.onCompleted: splashTimer.start()
 }

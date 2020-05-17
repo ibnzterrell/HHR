@@ -48,33 +48,35 @@
 **
 ****************************************************************************/
 
-#include <QGuiApplication>
-#include <QLoggingCategory>
-#include <QQmlApplicationEngine>
-#include <QQmlContext>
+#ifndef BLUETOOTHBASECLASS_H
+#define BLUETOOTHBASECLASS_H
 
-#include "connectionhandler.h"
-#include "devicefinder.h"
-#include "devicehandler.h"
+#include <QObject>
 
-int main(int argc, char *argv[])
+class BluetoothBaseClass : public QObject
 {
-    QLoggingCategory::setFilterRules(QStringLiteral("qt.bluetooth* = true"));
-    QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-    QGuiApplication app(argc, argv);
+    Q_OBJECT
+    Q_PROPERTY(QString error READ error WRITE setError NOTIFY errorChanged)
+    Q_PROPERTY(QString info READ info WRITE setInfo NOTIFY infoChanged)
 
-    ConnectionHandler connectionHandler;
-    DeviceHandler deviceHandler;
-    DeviceFinder deviceFinder(&deviceHandler);
+public:
+    explicit BluetoothBaseClass(QObject *parent = nullptr);
 
-    qmlRegisterUncreatableType<DeviceHandler>("Shared", 1, 0, "AddressType", "Enum is not a type");
+    QString error() const;
+    void setError(const QString& error);
 
-    QQmlApplicationEngine engine;
-    engine.rootContext()->setContextProperty("connectionHandler", &connectionHandler);
-    engine.rootContext()->setContextProperty("deviceFinder", &deviceFinder);
-    engine.rootContext()->setContextProperty("deviceHandler", &deviceHandler);
+    QString info() const;
+    void setInfo(const QString& info);
 
-    engine.load(QUrl(QStringLiteral("qrc:/qml/main.qml")));
+    void clearMessages();
 
-    return app.exec();
-}
+signals:
+    void errorChanged();
+    void infoChanged();
+
+private:
+    QString m_error;
+    QString m_info;
+};
+
+#endif // BLUETOOTHBASECLASS_H

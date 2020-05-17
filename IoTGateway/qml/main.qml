@@ -48,33 +48,58 @@
 **
 ****************************************************************************/
 
-#include <QGuiApplication>
-#include <QLoggingCategory>
-#include <QQmlApplicationEngine>
-#include <QQmlContext>
+import QtQuick 2.7
+import QtQuick.Window 2.2
+import "."
 
-#include "connectionhandler.h"
-#include "devicefinder.h"
-#include "devicehandler.h"
+Window {
+    id: wroot
+    visible: true
+    width: 720 * .7
+    height: 1240 * .7
+    title: qsTr("HeartRateGame")
+    color: GameSettings.backgroundColor
 
-int main(int argc, char *argv[])
-{
-    QLoggingCategory::setFilterRules(QStringLiteral("qt.bluetooth* = true"));
-    QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-    QGuiApplication app(argc, argv);
+    Component.onCompleted: {
+        GameSettings.wWidth = Qt.binding(function() {return width})
+        GameSettings.wHeight = Qt.binding(function() {return height})
+    }
 
-    ConnectionHandler connectionHandler;
-    DeviceHandler deviceHandler;
-    DeviceFinder deviceFinder(&deviceHandler);
+    Loader {
+        id: splashLoader
+        anchors.fill: parent
+        source: "SplashScreen.qml"
+        asynchronous: false
+        visible: true
 
-    qmlRegisterUncreatableType<DeviceHandler>("Shared", 1, 0, "AddressType", "Enum is not a type");
+        onStatusChanged: {
+            if (status === Loader.Ready) {
+                appLoader.setSource("App.qml");
+            }
+        }
+    }
 
-    QQmlApplicationEngine engine;
-    engine.rootContext()->setContextProperty("connectionHandler", &connectionHandler);
-    engine.rootContext()->setContextProperty("deviceFinder", &deviceFinder);
-    engine.rootContext()->setContextProperty("deviceHandler", &deviceHandler);
+    Connections {
+        target: splashLoader.item
+        onReadyToGo: {
+            appLoader.visible = true
+            appLoader.item.init()
+            splashLoader.visible = false
+            splashLoader.setSource("")
+            appLoader.item.forceActiveFocus();
+        }
+    }
 
-    engine.load(QUrl(QStringLiteral("qrc:/qml/main.qml")));
-
-    return app.exec();
+    Loader {
+        id: appLoader
+        anchors.fill: parent
+        visible: false
+        asynchronous: true
+        onStatusChanged: {
+            if (status === Loader.Ready)
+                splashLoader.item.appReady()
+            if (status === Loader.Error)
+                splashLoader.item.errorInLoadingApp();
+        }
+    }
 }

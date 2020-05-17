@@ -48,33 +48,14 @@
 **
 ****************************************************************************/
 
-#include <QGuiApplication>
-#include <QLoggingCategory>
-#include <QQmlApplicationEngine>
-#include <QQmlContext>
+#ifndef HEARTRATEGLOBAL_H
+#define HEARTRATEGLOBAL_H
 
-#include "connectionhandler.h"
-#include "devicefinder.h"
-#include "devicehandler.h"
+//#define USE_SIMULATOR
 
-int main(int argc, char *argv[])
-{
-    QLoggingCategory::setFilterRules(QStringLiteral("qt.bluetooth* = true"));
-    QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-    QGuiApplication app(argc, argv);
+#if defined(Q_OS_WIN32) || defined(USE_SIMULATOR)
+#define SIMULATOR
+#endif
 
-    ConnectionHandler connectionHandler;
-    DeviceHandler deviceHandler;
-    DeviceFinder deviceFinder(&deviceHandler);
 
-    qmlRegisterUncreatableType<DeviceHandler>("Shared", 1, 0, "AddressType", "Enum is not a type");
-
-    QQmlApplicationEngine engine;
-    engine.rootContext()->setContextProperty("connectionHandler", &connectionHandler);
-    engine.rootContext()->setContextProperty("deviceFinder", &deviceFinder);
-    engine.rootContext()->setContextProperty("deviceHandler", &deviceHandler);
-
-    engine.load(QUrl(QStringLiteral("qrc:/qml/main.qml")));
-
-    return app.exec();
-}
+#endif // HEARTRATEGLOBAL_H

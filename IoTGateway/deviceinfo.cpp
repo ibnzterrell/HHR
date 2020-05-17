@@ -48,33 +48,44 @@
 **
 ****************************************************************************/
 
-#include <QGuiApplication>
-#include <QLoggingCategory>
-#include <QQmlApplicationEngine>
-#include <QQmlContext>
+#include "heartrate-global.h"
+#include "deviceinfo.h"
+#include <QBluetoothAddress>
+#include <QBluetoothUuid>
 
-#include "connectionhandler.h"
-#include "devicefinder.h"
-#include "devicehandler.h"
-
-int main(int argc, char *argv[])
+DeviceInfo::DeviceInfo(const QBluetoothDeviceInfo &info):
+    m_device(info)
 {
-    QLoggingCategory::setFilterRules(QStringLiteral("qt.bluetooth* = true"));
-    QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-    QGuiApplication app(argc, argv);
+}
 
-    ConnectionHandler connectionHandler;
-    DeviceHandler deviceHandler;
-    DeviceFinder deviceFinder(&deviceHandler);
+QBluetoothDeviceInfo DeviceInfo::getDevice() const
+{
+    return m_device;
+}
 
-    qmlRegisterUncreatableType<DeviceHandler>("Shared", 1, 0, "AddressType", "Enum is not a type");
+QString DeviceInfo::getName() const
+{
+#ifdef SIMULATOR
+    return "Demo device";
+#else
+    return m_device.name();
+#endif
+}
 
-    QQmlApplicationEngine engine;
-    engine.rootContext()->setContextProperty("connectionHandler", &connectionHandler);
-    engine.rootContext()->setContextProperty("deviceFinder", &deviceFinder);
-    engine.rootContext()->setContextProperty("deviceHandler", &deviceHandler);
+QString DeviceInfo::getAddress() const
+{
+#ifdef SIMULATOR
+    return "00:11:22:33:44:55";
+#elif defined Q_OS_DARWIN
+    // workaround for Core Bluetooth:
+    return m_device.deviceUuid().toString();
+#else
+    return m_device.address().toString();
+#endif
+}
 
-    engine.load(QUrl(QStringLiteral("qrc:/qml/main.qml")));
-
-    return app.exec();
+void DeviceInfo::setDevice(const QBluetoothDeviceInfo &device)
+{
+    m_device = device;
+    emit deviceChanged();
 }

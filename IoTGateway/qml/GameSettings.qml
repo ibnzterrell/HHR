@@ -48,33 +48,54 @@
 **
 ****************************************************************************/
 
-#include <QGuiApplication>
-#include <QLoggingCategory>
-#include <QQmlApplicationEngine>
-#include <QQmlContext>
+pragma Singleton
+import QtQuick 2.5
 
-#include "connectionhandler.h"
-#include "devicefinder.h"
-#include "devicehandler.h"
+Item {
+    property int wHeight
+    property int wWidth
 
-int main(int argc, char *argv[])
-{
-    QLoggingCategory::setFilterRules(QStringLiteral("qt.bluetooth* = true"));
-    QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-    QGuiApplication app(argc, argv);
+    // Colors
+    readonly property color backgroundColor: "#2d3037"
+    readonly property color buttonColor: "#202227"
+    readonly property color buttonPressedColor: "#6ccaf2"
+    readonly property color disabledButtonColor: "#555555"
+    readonly property color viewColor: "#202227"
+    readonly property color delegate1Color: Qt.darker(viewColor, 1.2)
+    readonly property color delegate2Color: Qt.lighter(viewColor, 1.2)
+    readonly property color textColor: "#ffffff"
+    readonly property color textDarkColor: "#232323"
+    readonly property color disabledTextColor: "#777777"
+    readonly property color sliderColor: "#6ccaf2"
+    readonly property color errorColor: "#ba3f62"
+    readonly property color infoColor: "#3fba62"
 
-    ConnectionHandler connectionHandler;
-    DeviceHandler deviceHandler;
-    DeviceFinder deviceFinder(&deviceHandler);
+    // Font sizes
+    property real microFontSize: hugeFontSize * 0.2
+    property real tinyFontSize: hugeFontSize * 0.4
+    property real smallTinyFontSize: hugeFontSize * 0.5
+    property real smallFontSize: hugeFontSize * 0.6
+    property real mediumFontSize: hugeFontSize * 0.7
+    property real bigFontSize: hugeFontSize * 0.8
+    property real largeFontSize: hugeFontSize * 0.9
+    property real hugeFontSize: (wWidth + wHeight) * 0.03
+    property real giganticFontSize: (wWidth + wHeight) * 0.04
 
-    qmlRegisterUncreatableType<DeviceHandler>("Shared", 1, 0, "AddressType", "Enum is not a type");
+    // Some other values
+    property real fieldHeight: wHeight * 0.08
+    property real fieldMargin: fieldHeight * 0.5
+    property real buttonHeight: wHeight * 0.08
+    property real buttonRadius: buttonHeight * 0.1
 
-    QQmlApplicationEngine engine;
-    engine.rootContext()->setContextProperty("connectionHandler", &connectionHandler);
-    engine.rootContext()->setContextProperty("deviceFinder", &deviceFinder);
-    engine.rootContext()->setContextProperty("deviceHandler", &deviceHandler);
+    // Some help functions
+    function widthForHeight(h, ss)
+    {
+        return h/ss.height * ss.width;
+    }
 
-    engine.load(QUrl(QStringLiteral("qrc:/qml/main.qml")));
+    function heightForWidth(w, ss)
+    {
+        return w/ss.width * ss.height;
+    }
 
-    return app.exec();
 }

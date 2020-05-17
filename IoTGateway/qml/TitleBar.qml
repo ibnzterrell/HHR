@@ -48,33 +48,50 @@
 **
 ****************************************************************************/
 
-#include <QGuiApplication>
-#include <QLoggingCategory>
-#include <QQmlApplicationEngine>
-#include <QQmlContext>
+import QtQuick 2.5
 
-#include "connectionhandler.h"
-#include "devicefinder.h"
-#include "devicehandler.h"
+Rectangle    {
+    id: titleBar
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    height: GameSettings.fieldHeight
+    color: GameSettings.viewColor
 
-int main(int argc, char *argv[])
-{
-    QLoggingCategory::setFilterRules(QStringLiteral("qt.bluetooth* = true"));
-    QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-    QGuiApplication app(argc, argv);
+    property var __titles: ["CONNECT", "MEASURE", "STATS"]
+    property int currentIndex: 0
 
-    ConnectionHandler connectionHandler;
-    DeviceHandler deviceHandler;
-    DeviceFinder deviceFinder(&deviceHandler);
+    signal titleClicked(int index)
 
-    qmlRegisterUncreatableType<DeviceHandler>("Shared", 1, 0, "AddressType", "Enum is not a type");
+    Repeater {
+        model: 3
+        Text {
+            width: titleBar.width / 3
+            height: titleBar.height
+            x: index * width
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+            text: __titles[index]
+            font.pixelSize: GameSettings.tinyFontSize
+            color: titleBar.currentIndex === index ? GameSettings.textColor : GameSettings.disabledTextColor
 
-    QQmlApplicationEngine engine;
-    engine.rootContext()->setContextProperty("connectionHandler", &connectionHandler);
-    engine.rootContext()->setContextProperty("deviceFinder", &deviceFinder);
-    engine.rootContext()->setContextProperty("deviceHandler", &deviceHandler);
+            MouseArea {
+                anchors.fill: parent
+                onClicked: titleClicked(index)
+            }
+        }
+    }
 
-    engine.load(QUrl(QStringLiteral("qrc:/qml/main.qml")));
 
-    return app.exec();
+    Item {
+        anchors.bottom: parent.bottom
+        width: parent.width / 3
+        height: parent.height
+        x: currentIndex * width
+
+        BottomLine{}
+
+        Behavior on x { NumberAnimation { duration: 200 } }
+    }
+
 }

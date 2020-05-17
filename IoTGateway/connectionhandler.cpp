@@ -48,33 +48,46 @@
 **
 ****************************************************************************/
 
-#include <QGuiApplication>
-#include <QLoggingCategory>
-#include <QQmlApplicationEngine>
-#include <QQmlContext>
-
+#include "heartrate-global.h"
 #include "connectionhandler.h"
-#include "devicefinder.h"
-#include "devicehandler.h"
+#include <QtBluetooth/qtbluetooth-config.h>
+#include <QtCore/qsystemdetection.h>
 
-int main(int argc, char *argv[])
+ConnectionHandler::ConnectionHandler(QObject *parent) : QObject(parent)
 {
-    QLoggingCategory::setFilterRules(QStringLiteral("qt.bluetooth* = true"));
-    QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-    QGuiApplication app(argc, argv);
+    connect(&m_localDevice, &QBluetoothLocalDevice::hostModeStateChanged,
+            this, &ConnectionHandler::hostModeChanged);
+}
 
-    ConnectionHandler connectionHandler;
-    DeviceHandler deviceHandler;
-    DeviceFinder deviceFinder(&deviceHandler);
+bool ConnectionHandler::alive() const
+{
+#if defined(SIMULATOR) || defined(QT_PLATFORM_UIKIT)
+    return true;
+#else
+    return m_localDevice.isValid() && m_localDevice.hostMode() != QBluetoothLocalDevice::HostPoweredOff;
+#endif
+}
 
-    qmlRegisterUncreatableType<DeviceHandler>("Shared", 1, 0, "AddressType", "Enum is not a type");
+bool ConnectionHandler::requiresAddressType() const
+{
+#if QT_CONFIG(bluez)
+    return true;
+#else
+    return false;
+#endif
+}
 
-    QQmlApplicationEngine engine;
-    engine.rootContext()->setContextProperty("connectionHandler", &connectionHandler);
-    engine.rootContext()->setContextProperty("deviceFinder", &deviceFinder);
-    engine.rootContext()->setContextProperty("deviceHandler", &deviceHandler);
+QString ConnectionHandler::name() const
+{
+    return m_localDevice.name();
+}
 
-    engine.load(QUrl(QStringLiteral("qrc:/qml/main.qml")));
+QString ConnectionHandler::address() const
+{
+    return m_localDevice.address().toString();
+}
 
-    return app.exec();
+void ConnectionHandler::hostModeChanged(QBluetoothLocalDevice::HostMode /*mode*/)
+{
+    emit deviceChanged();
 }

@@ -48,33 +48,46 @@
 **
 ****************************************************************************/
 
-#include <QGuiApplication>
-#include <QLoggingCategory>
-#include <QQmlApplicationEngine>
-#include <QQmlContext>
+import QtQuick 2.5
+import "."
 
-#include "connectionhandler.h"
-#include "devicefinder.h"
-#include "devicehandler.h"
+Item {
+    anchors.fill: parent
 
-int main(int argc, char *argv[])
-{
-    QLoggingCategory::setFilterRules(QStringLiteral("qt.bluetooth* = true"));
-    QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-    QGuiApplication app(argc, argv);
+    property string errorMessage: ""
+    property string infoMessage: ""
+    property real messageHeight: msg.height
+    property bool hasError: errorMessage != ""
+    property bool hasInfo: infoMessage != ""
 
-    ConnectionHandler connectionHandler;
-    DeviceHandler deviceHandler;
-    DeviceFinder deviceFinder(&deviceHandler);
+    function init()
+    {
+    }
 
-    qmlRegisterUncreatableType<DeviceHandler>("Shared", 1, 0, "AddressType", "Enum is not a type");
+    function close()
+    {
+        app.prevPage()
+    }
 
-    QQmlApplicationEngine engine;
-    engine.rootContext()->setContextProperty("connectionHandler", &connectionHandler);
-    engine.rootContext()->setContextProperty("deviceFinder", &deviceFinder);
-    engine.rootContext()->setContextProperty("deviceHandler", &deviceHandler);
+    Rectangle {
+        id: msg
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.right: parent.right
+        height: GameSettings.fieldHeight
+        color: hasError ? GameSettings.errorColor : GameSettings.infoColor
+        visible: hasError || hasInfo
 
-    engine.load(QUrl(QStringLiteral("qrc:/qml/main.qml")));
-
-    return app.exec();
+        Text {
+            id: error
+            anchors.fill: parent
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+            minimumPixelSize: 5
+            font.pixelSize: GameSettings.smallFontSize
+            fontSizeMode: Text.Fit
+            color: GameSettings.textColor
+            text: hasError ? errorMessage : infoMessage
+        }
+    }
 }

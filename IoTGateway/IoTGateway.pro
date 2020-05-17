@@ -1,38 +1,29 @@
-QT       += core gui bluetooth
+TEMPLATE = app
+TARGET = IoTGateway
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
-
+QT += qml quick bluetooth
 CONFIG += c++11
 
-# The following define makes your compiler emit warnings if you use
-# any Qt feature that has been marked deprecated (the exact warnings
-# depend on your compiler). Please consult the documentation of the
-# deprecated API in order to know how to port your code away from it.
-DEFINES += QT_DEPRECATED_WARNINGS
-
-# You can also make your code fail to compile if it uses deprecated APIs.
-# In order to do so, uncomment the following line.
-# You can also select to disable deprecated APIs only up to a certain version of Qt.
-#DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
-
-SOURCES += \
-    ble.cpp \
-    bledevice.cpp \
-    main.cpp \
-    mainwindow.cpp
-
 HEADERS += \
-    ble.h \
-    bledevice.h \
-    mainwindow.h
+    connectionhandler.h \
+    deviceinfo.h \
+    devicefinder.h \
+    devicehandler.h \
+    bluetoothbaseclass.h \
+    heartrate-global.h
 
-FORMS += \
-    mainwindow.ui
+SOURCES += main.cpp \
+    connectionhandler.cpp \
+    deviceinfo.cpp \
+    devicefinder.cpp \
+    devicehandler.cpp \
+    bluetoothbaseclass.cpp
 
-TRANSLATIONS += \
-    IoTGateway_en_US.ts
+RESOURCES += qml.qrc \
+    images.qrc
 
-# Default rules for deployment.
-qnx: target.path = /tmp/$${TARGET}/bin
-else: unix:!android: target.path = /opt/$${TARGET}/bin
-!isEmpty(target.path): INSTALLS += target
+# Additional import path used to resolve QML modules in Qt Creator's code model
+QML_IMPORT_PATH =
+
+target.path = ./
+INSTALLS += target

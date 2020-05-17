@@ -48,33 +48,75 @@
 **
 ****************************************************************************/
 
-#include <QGuiApplication>
-#include <QLoggingCategory>
-#include <QQmlApplicationEngine>
-#include <QQmlContext>
+import QtQuick 2.5
 
-#include "connectionhandler.h"
-#include "devicefinder.h"
-#include "devicehandler.h"
+Item {
+    id: root
+    anchors.fill: parent
 
-int main(int argc, char *argv[])
-{
-    QLoggingCategory::setFilterRules(QStringLiteral("qt.bluetooth* = true"));
-    QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-    QGuiApplication app(argc, argv);
+    Rectangle {
+        anchors.fill: parent
+        color: "black"
+        opacity: 0.9
+    }
 
-    ConnectionHandler connectionHandler;
-    DeviceHandler deviceHandler;
-    DeviceFinder deviceFinder(&deviceHandler);
+    MouseArea {
+        id: eventEater
+    }
 
-    qmlRegisterUncreatableType<DeviceHandler>("Shared", 1, 0, "AddressType", "Enum is not a type");
+    Rectangle {
+        id: dialogFrame
 
-    QQmlApplicationEngine engine;
-    engine.rootContext()->setContextProperty("connectionHandler", &connectionHandler);
-    engine.rootContext()->setContextProperty("deviceFinder", &deviceFinder);
-    engine.rootContext()->setContextProperty("deviceHandler", &deviceHandler);
+        anchors.centerIn: parent
+        width: parent.width * 0.8
+        height: parent.height * 0.6
+        border.color: "#454545"
+        color: GameSettings.backgroundColor
+        radius: width * 0.05
 
-    engine.load(QUrl(QStringLiteral("qrc:/qml/main.qml")));
+        Item {
+            id: dialogContainer
+            anchors.fill: parent
+            anchors.margins: parent.width*0.05
 
-    return app.exec();
+            Image {
+                id: offOnImage
+                anchors.left: quitButton.left
+                anchors.right: quitButton.right
+                anchors.top: parent.top
+                height: GameSettings.heightForWidth(width, sourceSize)
+                source: "images/bt_off_to_on.png"
+            }
+
+            Text {
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: offOnImage.bottom
+                anchors.bottom: quitButton.top
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+                wrapMode: Text.WordWrap
+                font.pixelSize: GameSettings.mediumFontSize
+                color: GameSettings.textColor
+                text: qsTr("This application cannot be used without Bluetooth. Please switch Bluetooth ON to continue.")
+            }
+
+            GameButton {
+                id: quitButton
+                anchors.bottom: parent.bottom
+                anchors.horizontalCenter: parent.horizontalCenter
+                width: dialogContainer.width * 0.6
+                height: GameSettings.buttonHeight
+                onClicked: Qt.quit()
+
+                Text {
+                    anchors.centerIn: parent
+                    color: GameSettings.textColor
+                    font.pixelSize: GameSettings.bigFontSize
+                    text: qsTr("Quit")
+                }
+            }
+        }
+    }
 }
+

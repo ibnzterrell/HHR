@@ -48,33 +48,41 @@
 **
 ****************************************************************************/
 
-#include <QGuiApplication>
-#include <QLoggingCategory>
-#include <QQmlApplicationEngine>
-#include <QQmlContext>
+import QtQuick 2.5
+import "."
 
-#include "connectionhandler.h"
-#include "devicefinder.h"
-#include "devicehandler.h"
+Rectangle {
+    id: button
+    color: baseColor
+    onEnabledChanged: checkColor()
+    radius: GameSettings.buttonRadius
 
-int main(int argc, char *argv[])
-{
-    QLoggingCategory::setFilterRules(QStringLiteral("qt.bluetooth* = true"));
-    QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-    QGuiApplication app(argc, argv);
+    property color baseColor: GameSettings.buttonColor
+    property color pressedColor: GameSettings.buttonPressedColor
+    property color disabledColor: GameSettings.disabledButtonColor
 
-    ConnectionHandler connectionHandler;
-    DeviceHandler deviceHandler;
-    DeviceFinder deviceFinder(&deviceHandler);
+    signal clicked()
 
-    qmlRegisterUncreatableType<DeviceHandler>("Shared", 1, 0, "AddressType", "Enum is not a type");
+    function checkColor()
+    {
+        if (!button.enabled) {
+            button.color = disabledColor
+        } else {
+            if (mouseArea.containsPress)
+                button.color = pressedColor
+            else
+                button.color = baseColor
+        }
+    }
 
-    QQmlApplicationEngine engine;
-    engine.rootContext()->setContextProperty("connectionHandler", &connectionHandler);
-    engine.rootContext()->setContextProperty("deviceFinder", &deviceFinder);
-    engine.rootContext()->setContextProperty("deviceHandler", &deviceHandler);
-
-    engine.load(QUrl(QStringLiteral("qrc:/qml/main.qml")));
-
-    return app.exec();
+    MouseArea {
+        id: mouseArea
+        anchors.fill: parent
+        onPressed: checkColor()
+        onReleased: checkColor()
+        onClicked: {
+            checkColor()
+            button.clicked()
+        }
+    }
 }

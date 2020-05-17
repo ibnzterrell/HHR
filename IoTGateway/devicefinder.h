@@ -48,33 +48,56 @@
 **
 ****************************************************************************/
 
-#include <QGuiApplication>
-#include <QLoggingCategory>
-#include <QQmlApplicationEngine>
-#include <QQmlContext>
+#ifndef DEVICEFINDER_H
+#define DEVICEFINDER_H
 
-#include "connectionhandler.h"
-#include "devicefinder.h"
-#include "devicehandler.h"
+#include "heartrate-global.h"
+#include "bluetoothbaseclass.h"
 
-int main(int argc, char *argv[])
+#include <QTimer>
+#include <QVariant>
+#include <QBluetoothDeviceDiscoveryAgent>
+#include <QBluetoothDeviceInfo>
+
+
+class DeviceInfo;
+class DeviceHandler;
+
+class DeviceFinder: public BluetoothBaseClass
 {
-    QLoggingCategory::setFilterRules(QStringLiteral("qt.bluetooth* = true"));
-    QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-    QGuiApplication app(argc, argv);
+    Q_OBJECT
 
-    ConnectionHandler connectionHandler;
-    DeviceHandler deviceHandler;
-    DeviceFinder deviceFinder(&deviceHandler);
+    Q_PROPERTY(bool scanning READ scanning NOTIFY scanningChanged)
+    Q_PROPERTY(QVariant devices READ devices NOTIFY devicesChanged)
 
-    qmlRegisterUncreatableType<DeviceHandler>("Shared", 1, 0, "AddressType", "Enum is not a type");
+public:
+    DeviceFinder(DeviceHandler *handler, QObject *parent = nullptr);
+    ~DeviceFinder();
 
-    QQmlApplicationEngine engine;
-    engine.rootContext()->setContextProperty("connectionHandler", &connectionHandler);
-    engine.rootContext()->setContextProperty("deviceFinder", &deviceFinder);
-    engine.rootContext()->setContextProperty("deviceHandler", &deviceHandler);
+    bool scanning() const;
+    QVariant devices();
 
-    engine.load(QUrl(QStringLiteral("qrc:/qml/main.qml")));
+public slots:
+    void startSearch();
+    void connectToService(const QString &address);
 
-    return app.exec();
-}
+private slots:
+    void addDevice(const QBluetoothDeviceInfo&);
+    void scanError(QBluetoothDeviceDiscoveryAgent::Error error);
+    void scanFinished();
+
+signals:
+    void scanningChanged();
+    void devicesChanged();
+
+private:
+    DeviceHandler *m_deviceHandler;
+    QBluetoothDeviceDiscoveryAgent *m_deviceDiscoveryAgent;
+    QList<QObject*> m_devices;
+
+#ifdef SIMULATOR
+    QTimer m_demoTimer;
+#endif
+};
+
+#endif // DEVICEFINDER_H
