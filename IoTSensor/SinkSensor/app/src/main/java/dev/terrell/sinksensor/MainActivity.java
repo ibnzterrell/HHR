@@ -6,52 +6,36 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.nxp.nfclib.NxpNfcLib;
-
 public class MainActivity extends AppCompatActivity {
-    private NxpNfcLib nfc;
     private static final String LogTag = "SinkSensor";
-
-    private void initNFC()
-    {
-        nfc = NxpNfcLib.getInstance();
-        try {
-            nfc.registerActivity(this, Secrets.MifareKey);
-        }catch (Exception e){
-            Log.e(LogTag, e.toString());
-        }
-    }
+    private NFC nfc;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        initNFC();
+        nfc = NFC.getInstance(this);
     }
 
     @Override
-    protected void onResume ()
-    {
-        nfc.startForeGroundDispatch();
+    protected void onResume() {
+        nfc.onResume();
         super.onResume();
     }
 
     @Override
-    protected void onPause()
-    {
-        nfc.stopForeGroundDispatch();
+    protected void onPause() {
+        nfc.onPause();
         super.onPause();
     }
 
     @Override
-    public void onNewIntent(final Intent intent)
-    {
+    public void onNewIntent(final Intent intent) {
         Log.d(LogTag, "Intent Received");
-        String guestIdentity = Guest.getIdentity(nfc, intent);
+        String guestIdentity = nfc.getIdentity(intent);
         if (guestIdentity != "unknown") {
             Log.d(LogTag, "Guest Identified: " + guestIdentity);
-        }
-        else {
+        } else {
             Log.w(LogTag, "Unable to Read Tag");
         }
         super.onNewIntent(intent);

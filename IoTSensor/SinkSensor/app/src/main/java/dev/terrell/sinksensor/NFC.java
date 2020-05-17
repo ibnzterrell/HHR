@@ -1,5 +1,6 @@
 package dev.terrell.sinksensor;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.util.Log;
 
@@ -11,13 +12,39 @@ import com.nxp.nfclib.desfire.DESFireFactory;
 import com.nxp.nfclib.desfire.IDESFireEV1;
 import java.util.Base64;
 
-public class Guest {
+public class NFC {
     private static final String LogTag = "SinkSensor";
+    private static NFC instance;
+    private NxpNfcLib lib;
 
-    public static String getIdentity(NxpNfcLib nfc, Intent intent) {
+    private NFC(Activity a) {
+        lib = NxpNfcLib.getInstance();
+        try {
+            lib.registerActivity(a, Secrets.MifareKey);
+        } catch (Exception e) {
+            Log.e(LogTag, e.toString());
+        }
+    }
+
+    public void onResume() {
+        lib.startForeGroundDispatch();
+    }
+
+    public void onPause() {
+        lib.stopForeGroundDispatch();
+    }
+
+    public static NFC getInstance(Activity a) {
+        if (instance == null) {
+            instance = new NFC(a);
+        }
+        return instance;
+    }
+
+    public String getIdentity(Intent intent) {
         String tagName = "unknown";
         try {
-            CardType cardType = nfc.getCardType(intent);
+            CardType cardType = lib.getCardType(intent);
             tagName = cardType.getTagName();
         } catch (Exception e) {
 
@@ -25,16 +52,16 @@ public class Guest {
         Log.d(LogTag, "Tag Type: " + tagName);
         switch (tagName) {
             case "DESFire EV1":
-                return getDESFireEV1Identity(nfc);
+                return getDESFireEV1Identity();
             case "Ultralight C":
-                return getUltralightCIdentity(nfc);
+                return getUltralightCIdentity();
             default:
                 return "unknown";
         }
     }
 
-    private static String getDESFireEV1Identity(NxpNfcLib nfc) {
-        IDESFireEV1 card = DESFireFactory.getInstance().getDESFire(nfc.getCustomModules());
+    private String getDESFireEV1Identity() {
+        IDESFireEV1 card = DESFireFactory.getInstance().getDESFire(lib.getCustomModules());
         card.getReader().connect();
         String identity = "unknown";
         try {
@@ -47,8 +74,8 @@ public class Guest {
         return identity;
     }
 
-    private static String getUltralightCIdentity(NxpNfcLib nfc) {
-        UltralightC card = UltralightFactory.getInstance().getUltralightC(nfc.getCustomModules());
+    private String getUltralightCIdentity() {
+        UltralightC card = UltralightFactory.getInstance().getUltralightC(lib.getCustomModules());
         card.getReader().connect();
         String identity = "unknown";
         try {
