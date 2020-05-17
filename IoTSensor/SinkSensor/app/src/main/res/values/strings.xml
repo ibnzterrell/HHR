@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">SinkSensor</string>
+    <string name="app_instructions">Scan NFC band or Card</string>
 </resources>
